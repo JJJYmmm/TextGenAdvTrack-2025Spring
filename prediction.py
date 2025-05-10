@@ -207,7 +207,7 @@ def run_prediction(model, dataset, model_type, opts_part = 0, opts_total = 1):
         }.get(model_type)
 
         if model_type != 'qwen3':
-            final_score = predict_func(text, model) if type(model) != tuple else predict_mage(text, model[0], model[1])
+            final_score = predict_func(text, model) if type(model) != tuple else predict_func(text, model[0], model[1])
         else:
             final_score = predict_qwen3(prompts[idx], text, model[0], model[1])
         text_predictions.append(final_score)
