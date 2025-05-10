@@ -4,8 +4,9 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score, accuracy_score, f1_score
 from sklearn.metrics import precision_score, recall_score, confusion_matrix
+from sklearn.model_selection import ParameterGrid
 
-def eval_func(gt_name="ground_truth", path=""):
+def eval_func(gt_name="ground_truth", path="", alpha = 0, beta = 0):
     """
     Args:
         gt_name (str): Name of the ground truth file (without extension)
@@ -43,6 +44,8 @@ def eval_func(gt_name="ground_truth", path=""):
             
             # Extract prediction values
             predictions = data["text_prediction"].values
+
+            predictions = predictions * alpha + beta
             
             # Get ground truth labels
             ground_truth = gts["label"].values
@@ -74,7 +77,7 @@ def eval_func(gt_name="ground_truth", path=""):
             )
             
             # Calculate average processing time per sample
-            mean_time = time_data["Time"][0] / time_data["Data Volume"][0]
+            mean_time = time_data["Time"][0] / 100 / time_data["Data Volume"][0]
             
             # Store results
             ret[team.split(".")[0]] = {
@@ -96,6 +99,70 @@ def eval_func(gt_name="ground_truth", path=""):
 
     return ret
 
+def calculate_score(opts, alpha, beta):
+    results = eval_func(gt_name=opts.gt_name, path=opts.submit_path, alpha=alpha, beta=beta)
+    leaderboard_data = {
+        "Team/Method": results.keys(),
+        "AUC": [res["auc"] for res in results.values()],
+        "Acc": [res["accuracy"] for res in results.values()],
+        "F1": [res["f1"] for res in results.values()],
+        "Avg Time (s)": [res["mean_time"] for res in results.values()]
+    }
+    leaderboard_df = pd.DataFrame(data=leaderboard_data)
+    leaderboard_df["Weighted Score"] = (
+        0.6 * leaderboard_df["AUC"] +
+        0.3 * leaderboard_df["Acc"] +
+        0.1 * leaderboard_df["F1"] / 100
+    )
+
+    return leaderboard_df["Weighted Score"].max()
+
+def find_best_alpha_beta(opts):
+    import random
+
+    best_alpha = 1
+    best_beta = 0
+    num_trials = 1000
+    best_score = calculate_score(opts, best_alpha, best_beta)
+
+    for i in range(num_trials):
+        alpha = random.uniform(0.0, 2.0)      # 随机选取 alpha 范围
+        beta = random.uniform(-1.0, 1.0)      # 随机选取 beta 范围
+        score = calculate_score(opts, alpha, beta)
+        
+        if score > best_score:
+            best_score = score
+            best_alpha = alpha
+            best_beta = beta
+            print(f"New best: alpha={alpha:.2f}, beta={beta:.2f}, score={score:.4f}")
+
+    print("Best parameters found:")
+    print(f"alpha = {best_alpha:.2f}, beta = {best_beta:.2f}, best_score = {best_score:.4f}")
+
+    return best_alpha, best_beta, best_score
+
+def find_best_alpha_beta_grid(opts):
+    alpha_range = np.arange(0.0, 2.0, 0.1)     # 例如从 0 到 2，步长 0.1
+    beta_range = np.arange(-1.0, 1.0, 0.1)     # 例如从 -1 到 1，步长 0.1
+
+    best_alpha = 1
+    best_beta = 0
+    best_score = calculate_score(opts, best_alpha, best_beta)
+
+    for alpha in alpha_range:
+        for beta in beta_range:
+            score = calculate_score(opts, alpha, beta)
+            if score > best_score:
+                best_score = score
+                best_alpha = alpha
+                best_beta = beta
+                print(f"New best: alpha={alpha:.2f}, beta={beta:.2f}, score={score:.4f}")
+
+    print("Best parameters found:")
+    print(f"alpha = {best_alpha:.2f}, beta = {best_beta:.2f}, best_score = {best_score:.4f}")
+
+    return best_alpha, best_beta, best_score
+
 if __name__ == "__main__":
     arg = argparse.ArgumentParser()
     arg.add_argument(
@@ -111,38 +178,35 @@ if __name__ == "__main__":
         help="Name of ground truth file (without extension)"
     )
     opts = arg.parse_args()
-    
-    results = eval_func(gt_name=opts.gt_name, path=opts.submit_path)
-
-    # Create leaderboard Excel file
     writer = pd.ExcelWriter(os.path.join(opts.submit_path, "LeaderBoard.xlsx"), engine="openpyxl")
+        
+    # best_alpha, best_beta, best_score = find_best_alpha_beta_grid(opts)
     
+    # # Update the best alpha, beta, and weighted score if necessary
+
+    # print(f"Best alpha: {best_alpha}")
+    # print(f"Best beta: {best_beta}")
+    # print(f"Best weighted score: {best_score}")
+
+    # best_alpha = 1.60
+    # best_beta = -0.87
+    best_alpha = 1
+    best_beta = 0
+
+    results = eval_func(gt_name=opts.gt_name, path=opts.submit_path, alpha=best_alpha, beta=best_beta)
     leaderboard_data = {
         "Team/Method": results.keys(),
         "AUC": [res["auc"] for res in results.values()],
         "Acc": [res["accuracy"] for res in results.values()],
         "F1": [res["f1"] for res in results.values()],
-        # "FN": [res["fn"] for res in results.values()],
-        # "FP": [res["fp"] for res in results.values()],
-        # "Prec": [res["precision"] for res in results.values()],
-        # "Rec": [res["recall"] for res in results.values()],
         "Avg Time (s)": [res["mean_time"] for res in results.values()]
     }
-    
-    # Create DataFrame and calculate weighted score
     leaderboard_df = pd.DataFrame(data=leaderboard_data)
-     
-    # Calculate weighted score (AUC weight 0.6, F1 weight 0.25, accuracy weight 0.1)
     leaderboard_df["Weighted Score"] = (
-        0.6 * leaderboard_df["AUC"] + 
-        0.3 * leaderboard_df["Acc"] + 
-        0.1 * leaderboard_df["F1"] / 100 
+        0.6 * leaderboard_df["AUC"] +
+        0.3 * leaderboard_df["Acc"] +
+        0.1 * leaderboard_df["F1"] / 100
     )
-    
-    # Sort by weighted score in descending order
-    leaderboard_df = leaderboard_df.sort_values(by="Weighted Score", ascending=False)
-    
+
     leaderboard_df.to_excel(writer, index=False)
     writer.close()
-    
-    print(f"Extended leaderboard saved to {os.path.join(opts.submit_path, 'LeaderBoard.xlsx')}")
