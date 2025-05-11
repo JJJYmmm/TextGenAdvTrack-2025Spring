@@ -1,0 +1,12 @@
+huggingface_hub
+numpy==1.24.4
+pandas==2.0.3
+scikit_learn==1.3.2
+tqdm==4.66.5
+transformers
+clean-text
+
+keras==2.15.0
+keras-core==0.1.7
+keras-nlp==0.6.2
+tf-keras ==2.15.0
