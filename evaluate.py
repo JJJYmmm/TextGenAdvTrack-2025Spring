@@ -6,7 +6,7 @@ from sklearn.metrics import roc_auc_score, accuracy_score, f1_score
 from sklearn.metrics import precision_score, recall_score, confusion_matrix
 from sklearn.model_selection import ParameterGrid
 
-def eval_func(gt_name="ground_truth", path="", alpha = 0, beta = 0):
+def eval_func(gt_name="ground_truth", path="", alpha = 1, beta = 0):
     """
     Args:
         gt_name (str): Name of the ground truth file (without extension)
