@@ -4,7 +4,7 @@ TEAM: SAFETEAM
 
 SUPPORT MODELS: argugpt/argugpt-sent/kerasnlp/mage/qwen3-0.6b
 
-> For argugpt/argugpt-sent, you need to download the model weights from Hugging Face and rename the directory to argugpt-roberta/argugpt-roberta-sent. Otherwise, the version check with the latest Transformers library will fail.
+> For argugpt/argugpt-sent, you need to download the model weights from Hugging Face and rename the directory to argugpt-roberta/argugpt-roberta-sent. Otherwise, the version check with the latest transformers will fail.
 > 
 > For kerasnlp, you need to download the weights from [here](https://storage.googleapis.com/kaggle-data-sets/3947266/6987454/compressed/fold0.keras.zip?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gcp-kaggle-com%40kaggle-161607.iam.gserviceaccount.com%2F20250510%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20250510T154500Z&X-Goog-Expires=259200&X-Goog-SignedHeaders=host&X-Goog-Signature=0ec24f1d137c10c1e6413a79b4b20cd56a459c816f5bd93a8e28c8930fc8e2fb08bbdaf1614dc5b41838021d46609cfb4be81a739aeffa2a46c8d3cf48366753e664e720fe1ad469d46583ef43b17526becac1c5e950b508afefd063fdb42d0a1103d694431204d4e11008bf16ebaab63a40572c30f0110d4efbec6af9f90f79213503d41f536e42d98bcb184923fbe62ba247a7b36ba4e62607c3d16b52a80a0fb7d2eebba86664f93c1a9520201e066b66de7248f1464f7ab85e2798c7b5127db3942ab5592fd2353e9c8811f57975cd61b66bf83b4289bc015d83b1bb3e38bd54b3e8705415cbc330a21919f59f873914bd6342356f89095bc85efe5a912d)
 
