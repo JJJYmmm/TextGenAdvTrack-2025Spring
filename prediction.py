@@ -21,7 +21,7 @@ def get_opts():
     arg.add_argument(
         "--model-type",
         type=str,
-        choices=["argugpt", "argugpt-sent", "kerasnlp", "mage", "qwen3"],
+        choices=["argugpt", "argugpt-sent", "kerasnlp", "mage", "qwen3", "bino"],
         help="Type of model to use",
         default="your model"
     )
@@ -100,7 +100,10 @@ def get_model(opts):
             device_map="cuda"
         )
         model = (model, tokenizer)
-
+    
+    elif opts.model_type == 'bino':
+        from binoculars import Binoculars
+        model = Binoculars()
 
     print("Model loaded successfully")
     return model
@@ -232,6 +235,9 @@ def predict_qwen3_batch(prompts, texts, model, tokenizer):
 
     return probs
 
+def predict_bino_batch(texts, model):
+    return model.compute_score(texts)
+
 def run_prediction_batch(model, dataset, model_type, opts_part=0, opts_total=1, batch_size=4):
     print("Starting prediction process...")
     prompts = dataset['prompt'].tolist()
@@ -256,12 +262,20 @@ def run_prediction_batch(model, dataset, model_type, opts_part=0, opts_total=1, 
         batch_texts = texts[i:i+batch_size]
 
         # 批量预测
-        batch_probs = predict_qwen3_batch(
-            prompts=batch_prompts,
-            texts=batch_texts,
-            model=model[0],
-            tokenizer=model[1]
-        )
+        if model_type == 'qwen3':
+            batch_probs = predict_qwen3_batch(
+                prompts=batch_prompts,
+                texts=batch_texts,
+                model=model[0],
+                tokenizer=model[1]
+            )
+        elif model_type == 'bino':
+            batch_probs = predict_bino_batch(
+                texts=batch_texts,
+                model=model
+            )
+        else:
+            raise ValueError(f"Invalid model type for batch infer: {model_type}")
         
         text_predictions.extend(batch_probs)
     
