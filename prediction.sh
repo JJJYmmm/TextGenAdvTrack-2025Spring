@@ -4,4 +4,4 @@ python prediction.py \
     --model-type qwen3 \
     --part 0 \
     --total 1 \
-    --result-path ./
+    --result-path ./results
