@@ -111,7 +111,7 @@ def predict_keras(text, model, tokenizer):
     text['padding_mask'] = text['padding_mask'].unsqueeze(0)
     prediction = model.predict(text)
     score = prediction[0][0].item()
-    return score
+    return 1 - score
 
 def predict_argugpt(text, model):
     prediction = model(text)
